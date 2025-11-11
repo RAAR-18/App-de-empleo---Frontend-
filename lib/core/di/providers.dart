@@ -37,8 +37,7 @@ import 'package:oasis/domain/usecase/obtener_perfil_completo_caso_uso.dart';
 
 final dioProvider = Provider<Dio>((ref) {
   final options = BaseOptions(
-    // 🔴 PRODUCCIÓN: Backend del profesor
-   // baseUrl: "https://propocol.backcoreunimag.com/",
+
 
     // 🟢 DESARROLLO: Backend local proColombia (comentado)
      baseUrl: "http://localhost:3210/",
