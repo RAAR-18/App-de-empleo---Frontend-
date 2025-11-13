@@ -3,14 +3,12 @@ class PerfilDTO {
   final String nombreCompleto;
   final String profesion;
   final String ubicacion;
-  final String? fotoPerfil;
 
   PerfilDTO({
     required this.idUsuario,
     required this.nombreCompleto,
     required this.profesion,
     required this.ubicacion,
-    this.fotoPerfil,
   });
 
   factory PerfilDTO.fromJson(Map<String, dynamic> json) {
@@ -19,7 +17,6 @@ class PerfilDTO {
       nombreCompleto: json['nombreCompleto'] as String,
       profesion: json['profesion'] as String,
       ubicacion: json['ubicacion'] as String,
-      fotoPerfil: json['fotoPerfil'] as String?,
     );
   }
 
@@ -29,7 +26,6 @@ class PerfilDTO {
       'nombreCompleto': nombreCompleto,
       'profesion': profesion,
       'ubicacion': ubicacion,
-      'fotoPerfil': fotoPerfil,
     };
   }
 }

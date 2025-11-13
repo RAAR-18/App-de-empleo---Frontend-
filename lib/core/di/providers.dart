@@ -29,15 +29,22 @@ import "package:oasis/core/util/websocket_service.dart";
 
 import 'package:oasis/data/remote/perfil_api.dart';
 import 'package:oasis/data/repository/perfil_repositorio_impl.dart';
-import 'package:oasis/domain/model/perfil_completo.dart';
 import 'package:oasis/domain/repository/perfil_repositorio.dart';
 import 'package:oasis/domain/usecase/obtener_perfil_caso_uso.dart';
 import 'package:oasis/domain/usecase/obtener_palabras_clave_caso_uso.dart';
-import 'package:oasis/domain/usecase/obtener_perfil_completo_caso_uso.dart';
+
+import "package:oasis/domain/model/palabra_clave.dart";
+import 'package:oasis/data/remote/palabra_clave_api.dart';
+import 'package:oasis/data/repository/palabra_clave_repositorio_impl.dart';
+import 'package:oasis/domain/repository/palabra_clave_repositorio.dart';
+import 'package:oasis/domain/usecase/agregar_palabras_clave_caso_uso.dart';
+import 'package:oasis/domain/usecase/obtener_catalogo_palabra_clave_caso_uso.dart';
+import 'package:oasis/application/palabras_clave_notifier.dart';
 
 final dioProvider = Provider<Dio>((ref) {
   final options = BaseOptions(
-
+    // 🔴 PRODUCCIÓN: Backend del profesor
+    // baseUrl: "https://propocol.backcoreunimag.com/",
 
     // 🟢 DESARROLLO: Backend local proColombia (comentado)
      baseUrl: "http://localhost:3210/",
@@ -282,12 +289,66 @@ final obtenerPalabrasClaveUseCaseProvider = Provider<ObtenerPalabrasClaveCasoUso
   return ObtenerPalabrasClaveCasoUso(repository);
 });
 
-final obtenerPerfilCompletoUseCaseProvider = Provider<ObtenerPerfilCompletoCasoUso>((ref) {
-  final repository = ref.watch(perfilRepositoryProvider);
-  return ObtenerPerfilCompletoCasoUso(repository);
-});// Provider que carga todo el perfil completo (perfil + palabras clave)
-final perfilCompletoProvider = FutureProvider.family<PerfilCompleto, int>((ref, idUsuario) async {
-  final useCase = ref.watch(obtenerPerfilCompletoUseCaseProvider);
-  return useCase(idUsuario);
+final perfilProvider = FutureProvider.autoDispose((ref) async {
+  final session = ref.watch(sessionProvider);
+  final idUsuario = session.userId;
+
+  if (idUsuario == null) {
+    throw Exception('No hay usuario en sesión');
+  }
+
+  final useCase = ref.watch(obtenerPerfilUseCaseProvider);
+  return await useCase(idUsuario);
+});
+
+final palabrasClaveProvider = FutureProvider.autoDispose<List<PalabraClave>>((ref) async {
+  final session = ref.watch(sessionProvider);
+  final idUsuario = session.userId;
+
+  if (idUsuario == null) {
+    throw Exception('No hay usuario en sesión');
+  }
+
+  final useCase = ref.watch(obtenerPalabrasClaveUseCaseProvider);
+  return await useCase(idUsuario);
+});
+
+// *****************************************************************************
+//  PROVIDERS DE PALABRAS CLAVE
+
+final palabraClaveApiProvider = Provider<PalabraClaveApi>((ref) {
+  final dio = ref.watch(dioProvider);
+  return PalabraClaveApi(dio);
+});
+
+final palabraClaveRepositoryProvider = Provider<PalabraClaveRepositorio>((ref) {
+  final api = ref.watch(palabraClaveApiProvider);
+  return PalabraClaveRepositorioImpl(api);
+});
+
+
+final agregarPalabrasClaveUseCaseProvider = Provider<AgregarPalabrasClavesCasoUso>((ref) {
+  final repository = ref.watch(palabraClaveRepositoryProvider);
+  return AgregarPalabrasClavesCasoUso(repository);
+});
+
+final palabrasClaveNotifierProvider = StateNotifierProvider.autoDispose<PalabrasClaveNotifier, PalabrasClaveState>((ref) {
+  final obtenerUseCase = ref.watch(obtenerPalabrasClaveUseCaseProvider);
+  final agregarUseCase = ref.watch(agregarPalabrasClaveUseCaseProvider);
+
+  return PalabrasClaveNotifier(
+    obtenerPalabrasClaveCasoUso: obtenerUseCase,
+    agregarPalabrasClavesCasoUso: agregarUseCase,
+  );
+});
+
+final obtenerCatalogoPalabrasClaveUseCaseProvider = Provider<ObtenerCatalogoPalabrasClavesCasoUso>((ref) {
+  final repository = ref.watch(palabraClaveRepositoryProvider);
+  return ObtenerCatalogoPalabrasClavesCasoUso(repository);
+});
+
+final catalogoPalabrasClaveProvider = FutureProvider.autoDispose<List<PalabraClave>>((ref) async {
+  final useCase = ref.watch(obtenerCatalogoPalabrasClaveUseCaseProvider);
+  return await useCase();
 });
 

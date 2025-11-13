@@ -17,6 +17,7 @@ import 'package:oasis/presentation/registro/registro_inicio_screen.dart';
 import 'package:oasis/presentation/aspirante/chat/chat_test_screen.dart';
 import 'package:oasis/presentation/aspirante/chat/chat_screen.dart';
 import 'package:oasis/presentation/aspirante/chat/chat_conversacion_screen.dart';
+import 'package:oasis/presentation/aspirante/perfil/palabras_clave_screen.dart';
 
 class NoTransitionPage<T> extends CustomTransitionPage<T> {
   NoTransitionPage({super.key, required super.child})
@@ -134,6 +135,15 @@ final appRouter = GoRouter(
       pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
         child: const PerfilOpcionesScreen(),
+      ),
+    ),
+
+    GoRoute(
+      path: '/perfil/palabras-clave',
+      name: 'perfil_palabras_clave',
+      pageBuilder: (context, state) => NoTransitionPage(
+        key: state.pageKey,
+        child: const PalabrasClaveScreen(),
       ),
     ),
 

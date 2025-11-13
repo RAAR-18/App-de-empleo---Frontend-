@@ -4,33 +4,19 @@ import 'package:go_router/go_router.dart';
 import 'package:oasis/core/di/providers.dart';
 import 'package:oasis/core/ui/app_bottom_bar.dart';
 import 'package:oasis/core/ui/app_top_bar.dart';
-import 'package:oasis/domain/model/perfil_completo.dart';
 import 'package:oasis/presentation/aspirante/perfil/perfil_resumen_card.dart';
 
 class PerfilOpcionesScreen extends ConsumerWidget {
   const PerfilOpcionesScreen({super.key});
-
-  Future<PerfilCompleto?> obtenerPerfilCompleto(WidgetRef ref) async {
-    final casoUso = ref.read(obtenerPerfilCompletoUseCaseProvider);
-    final session = ref.read(sessionProvider);
-    final id = session.userId;
-    if (id == null) return null;
-
-    try {
-      // Aquí asumimos que casoUso(id) devuelve PerfilCompleto
-      final perfilCompleto = await casoUso(id);
-      return perfilCompleto;
-    } catch (e) {
-      // Manejo simple de error (puedes mejorar)
-      return null;
-    }
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(sessionProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+
+    final perfilAsync = ref.watch(perfilProvider);
+    final palabrasClaveAsync = ref.watch(palabrasClaveProvider);
 
     final opciones = [
       "Datos básicos",
@@ -42,45 +28,34 @@ class PerfilOpcionesScreen extends ConsumerWidget {
     ];
 
     return Scaffold(
-      body: FutureBuilder<PerfilCompleto?>(
-        future: obtenerPerfilCompleto(ref),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(perfilProvider);
+          ref.invalidate(palabrasClaveProvider);
+        },
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              pinned: false,
+              floating: true,
+              snap: true,
+              backgroundColor: colorScheme.surface,
+              elevation: 2,
+              title: const AppTopBar(title: "Perfil"),
+            ),
 
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-
-          final perfilCompleto = snapshot.data;
-
-          return CustomScrollView(
-            slivers: [
-              SliverAppBar(
-                pinned: false,
-                floating: true,
-                snap: true,
-                backgroundColor: colorScheme.surface,
-                elevation: 2,
-                title: const AppTopBar(title: "Perfil"),
+            SliverToBoxAdapter(
+              child: _buildPerfilCard(
+                context,
+                ref,
+                perfilAsync,
+                palabrasClaveAsync,
               ),
+            ),
 
-              SliverToBoxAdapter(
-                child: PerfilResumenCard(
-                  nombre: perfilCompleto?.perfil.nombreCompleto ?? "Cargando...",
-                  subtitulo1: perfilCompleto?.perfil.profesion ?? "Sin profesión",
-                  subtitulo2: perfilCompleto?.perfil.ubicacion ?? "Ubicación no registrada",
-                  progreso: 0.7,
-                  palabrasClave: perfilCompleto?.palabrasClave
-                      .map((p) => p.textoPalabraClave)
-                      .toList() ??
-                      [],
-                ),
-              ),
-
-              SliverList(
-                delegate: SliverChildBuilderDelegate((context, index) {
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                    (context, index) {
                   final opcion = opciones[index];
                   final isCerrarSesion = opcion == "Cerrar sesión";
 
@@ -102,7 +77,9 @@ class PerfilOpcionesScreen extends ConsumerWidget {
                       title: Text(
                         opcion,
                         style: textTheme.titleMedium?.copyWith(
-                          color: isCerrarSesion ? colorScheme.error : colorScheme.onSurface,
+                          color: isCerrarSesion
+                              ? colorScheme.error
+                              : colorScheme.onSurface,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -129,14 +106,18 @@ class PerfilOpcionesScreen extends ConsumerWidget {
                               builder: (context) {
                                 return AlertDialog(
                                   title: const Text("Cerrar sesión"),
-                                  content: const Text("¿Estás seguro de que deseas cerrar la sesión?"),
+                                  content: const Text(
+                                    "¿Estás seguro de que deseas cerrar la sesión?",
+                                  ),
                                   actions: [
                                     TextButton(
-                                      onPressed: () => Navigator.of(context).pop(false),
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(false),
                                       child: const Text("Cancelar"),
                                     ),
                                     FilledButton(
-                                      onPressed: () => Navigator.of(context).pop(true),
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(true),
                                       child: const Text("Aceptar"),
                                     ),
                                   ],
@@ -146,22 +127,138 @@ class PerfilOpcionesScreen extends ConsumerWidget {
 
                             if (confirmar == true) {
                               ref.read(sessionProvider.notifier).clearSession();
-                              if (context.mounted) context.go('/bienvenida');
+                              if (context.mounted) {
+                                context.go('/bienvenida');
+                              }
                             }
                             break;
                         }
                       },
                     ),
                   );
-                }, childCount: opciones.length),
+                },
+                childCount: opciones.length,
               ),
-            ],
-          );
-        },
+            ),
+          ],
+        ),
       ),
       bottomNavigationBar: AppBottomBar(
         currentIndex: 4,
         profileImageBase64: session.imageBase64,
+      ),
+    );
+  }
+
+  Widget _buildPerfilCard(
+      BuildContext context,
+      WidgetRef ref,
+      AsyncValue perfilAsync,
+      AsyncValue palabrasClaveAsync,
+      ) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    if (perfilAsync.isLoading || palabrasClaveAsync.isLoading) {
+      return Container(
+        margin: const EdgeInsets.all(16),
+        height: 200,
+        child: Center(
+          child: CircularProgressIndicator(
+            color: colorScheme.primary,
+          ),
+        ),
+      );
+    }
+
+    if (perfilAsync.hasError) {
+      return _buildErrorCard(
+        context,
+        ref,
+        'Error al cargar el perfil',
+        perfilAsync.error.toString(),
+      );
+    }
+
+    if (palabrasClaveAsync.hasError) {
+      return _buildErrorCard(
+        context,
+        ref,
+        'Error al cargar palabras clave',
+        palabrasClaveAsync.error.toString(),
+      );
+    }
+
+    if (perfilAsync.hasValue && palabrasClaveAsync.hasValue) {
+      final perfil = perfilAsync.value;
+      final palabrasClave = palabrasClaveAsync.value ?? [];
+
+      // Convertir List<PalabraClave> a List<String>
+      final palabrasClaveTexto = palabrasClave
+          .map((p) => p.textoPalabraClave)
+          .toList()
+          .cast<String>();
+
+      return PerfilResumenCard(
+        nombre: perfil.nombreCompleto,
+        profesion: perfil.profesion,
+        ubicacion: perfil.ubicacion,
+        progreso: 0.7,
+        palabrasClave: palabrasClaveTexto,
+      );
+    }
+
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildErrorCard(
+      BuildContext context,
+      WidgetRef ref,
+      String titulo,
+      String mensaje,
+      ) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorScheme.errorContainer,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.error_outline,
+            color: colorScheme.error,
+            size: 48,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            titulo,
+            style: textTheme.titleMedium?.copyWith(
+              color: colorScheme.onErrorContainer,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            mensaje,
+            style: textTheme.bodySmall?.copyWith(
+              color: colorScheme.onErrorContainer,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 12),
+          FilledButton(
+            onPressed: () {
+              ref.invalidate(perfilProvider);
+              ref.invalidate(palabrasClaveProvider);
+            },
+            child: const Text('Reintentar'),
+          ),
+        ],
       ),
     );
   }

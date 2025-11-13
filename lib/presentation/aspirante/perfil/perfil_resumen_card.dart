@@ -3,20 +3,21 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:oasis/core/di/providers.dart';
 
 class PerfilResumenCard extends ConsumerWidget {
   final String nombre;
-  final String subtitulo1;
-  final String subtitulo2;
+  final String profesion;
+  final String ubicacion;
   final double progreso; // valor entre 0.0 y 1.0
   final List<String> palabrasClave;
 
   const PerfilResumenCard({
     super.key,
     required this.nombre,
-    required this.subtitulo1,
-    required this.subtitulo2,
+    required this.profesion,
+    required this.ubicacion,
     required this.progreso,
     required this.palabrasClave,
   });
@@ -115,13 +116,13 @@ class PerfilResumenCard extends ConsumerWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      subtitulo1,
+                      profesion,
                       style: textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
                     ),
                     Text(
-                      subtitulo2,
+                      ubicacion,
                       style: textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -133,6 +134,57 @@ class PerfilResumenCard extends ConsumerWidget {
           ),
 
           const SizedBox(height: 16),
+
+          // Header de palabras clave con botón editar
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.numbers,
+                    size: 18,
+                    color: colorScheme.primary,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Palabras Clave',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+              InkWell(
+                onTap: () => context.push('/perfil/palabras-clave'),
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.edit_outlined,
+                        size: 16,
+                        color: colorScheme.primary,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Editar',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 8),
 
           // Palabras clave dinámicas
           Wrap(

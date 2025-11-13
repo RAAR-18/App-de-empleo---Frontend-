@@ -1,7 +1,6 @@
 import 'package:oasis/data/remote/perfil_api.dart';
 import 'package:oasis/domain/model/perfil.dart';
 import 'package:oasis/domain/model/palabra_clave.dart';
-import 'package:oasis/domain/model/perfil_completo.dart';
 import 'package:oasis/domain/repository/perfil_repositorio.dart';
 
 class PerfilRepositorioImpl implements PerfilRepositorio {
@@ -23,7 +22,6 @@ class PerfilRepositorioImpl implements PerfilRepositorio {
       nombreCompleto: dto.nombreCompleto,
       profesion: dto.profesion,
       ubicacion: dto.ubicacion,
-      fotoPerfil: dto.fotoPerfil,
     );
   }
 
@@ -41,16 +39,5 @@ class PerfilRepositorioImpl implements PerfilRepositorio {
       textoPalabraClave: dto.textoPalabraClave,
     ))
         .toList();
-  }
-
-  @override
-  Future<PerfilCompleto> obtenerPerfilCompleto(int idUsuario) async {
-    final perfil = await obtenerPerfil(idUsuario);
-    final palabrasClave = await obtenerPalabrasClave(idUsuario);
-
-    return PerfilCompleto(
-      perfil: perfil,
-      palabrasClave: palabrasClave,
-    );
   }
 }
