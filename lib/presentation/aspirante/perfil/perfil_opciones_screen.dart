@@ -211,8 +211,8 @@ class PerfilOpcionesScreen extends ConsumerWidget {
 
       return PerfilResumenCard(
         nombre: perfil.nombreCompleto,
-        profesion: perfil.profesion,
-        ubicacion: perfil.ubicacion,
+        profesion: perfil.profesion ?? 'Si especificar',
+        ubicacion: perfil.ubicacion ?? 'Ubicacion no registrada ',
         progreso: 0.7,
         palabrasClave: palabrasClaveTexto,
         urlFotoPerfil: fotoPerfilAsync.value,

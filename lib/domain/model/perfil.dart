@@ -1,14 +1,14 @@
 class Perfil {
   final int idUsuario;
   final String nombreCompleto;
-  final String profesion;
-  final String ubicacion;
+  final String? profesion;
+  final String? ubicacion;
 
   const Perfil({
     required this.idUsuario,
     required this.nombreCompleto,
-    required this.profesion,
-    required this.ubicacion,
+    this.profesion,
+    this.ubicacion,
   });
 
   Perfil copyWith({
