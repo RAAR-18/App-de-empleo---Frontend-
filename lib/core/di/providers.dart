@@ -12,6 +12,7 @@ import "package:oasis/domain/repository/acceso_repositorio.dart";
 import "package:oasis/domain/repository/pin_repositorio.dart";
 import "package:oasis/domain/repository/registro_repositorio.dart";
 import "package:oasis/domain/usecase/acceso_caso_uso.dart";
+import "package:oasis/domain/usecase/actualizar_datos_basicos_caso_uso.dart";
 import "package:oasis/domain/usecase/pin_caso_uso.dart";
 import "package:oasis/domain/usecase/registro_caso_uso.dart";
 
@@ -40,6 +41,22 @@ import 'package:oasis/domain/repository/palabra_clave_repositorio.dart';
 import 'package:oasis/domain/usecase/agregar_palabras_clave_caso_uso.dart';
 import 'package:oasis/domain/usecase/obtener_catalogo_palabra_clave_caso_uso.dart';
 import 'package:oasis/application/palabras_clave_notifier.dart';
+
+import 'package:oasis/data/remote/datos_basicos_api.dart';
+import 'package:oasis/data/repository/datos_basicos_repositorio.impl.dart';
+import 'package:oasis/domain/repository/datos_basicos_repositorio.dart';
+import 'package:oasis/domain/usecase/obtener_datos_basicos_caso_uso.dart';
+import 'package:oasis/application/datos_basicos_editar_notifier.dart';
+
+import 'package:oasis/data/remote/imagen_api.dart';
+import 'package:oasis/data/remote/ubicacion_api.dart';
+import 'package:oasis/data/repository/imagen_repositorio_impl.dart';
+import 'package:oasis/data/repository/ubicacion_repositorio_impl.dart';
+import 'package:oasis/domain/repository/imagen_repositorio.dart';
+import 'package:oasis/domain/repository/ubicacion_repositorio.dart';
+import 'package:oasis/domain/usecase/subir_foto_perfil_caso_uso.dart';
+import 'package:oasis/domain/usecase/obtener_foto_perfil_caso_uso.dart';
+import 'package:oasis/domain/usecase/buscar_ubicaciones_caso_uso.dart';
 
 final dioProvider = Provider<Dio>((ref) {
   final options = BaseOptions(
@@ -352,3 +369,98 @@ final catalogoPalabrasClaveProvider = FutureProvider.autoDispose<List<PalabraCla
   return await useCase();
 });
 
+// *****************************************************************************
+//  PROVIDERS DE DATOS BASICOS
+
+final datosBasicosApiProvider = Provider<DatosBasicosApi>((ref) {
+  final dio = ref.watch(dioProvider);
+  return DatosBasicosApi(dio);
+});
+
+final datosBasicosRepositoryProvider = Provider<DatosBasicosRepository>((ref) {
+  final api = ref.watch(datosBasicosApiProvider);
+  return DatosBasicosRepositoryImpl(api);
+});
+
+final obtenerDatosBasicosUseCaseProvider = Provider<ObtenerDatosBasicosUseCase>((ref) {
+  final repo = ref.watch(datosBasicosRepositoryProvider);
+  return ObtenerDatosBasicosUseCase(repo);
+});
+
+final datosBasicosProvider = FutureProvider.autoDispose((ref) async {
+  final session = ref.watch(sessionProvider);
+  final idUsuario = session.userId;
+
+  if (idUsuario == null) {
+    throw Exception('No hay usuario en sesión');
+  }
+
+  final useCase = ref.watch(obtenerDatosBasicosUseCaseProvider);
+  return await useCase(idUsuario);
+});
+
+final actualizarDatosBasicosCasoUsoProvider = Provider<ActualizarDatosBasicosCasoUso>((ref) {
+  final repo = ref.watch(datosBasicosRepositoryProvider);
+  return ActualizarDatosBasicosCasoUso(repo);
+});
+
+final datosBasicosEdicionNotifierProvider = StateNotifierProvider.autoDispose<
+    DatosBasicosEdicionNotifier, DatosBasicosEdicionState>((ref) {
+  final actualizarUseCase = ref.watch(actualizarDatosBasicosCasoUsoProvider);
+  return DatosBasicosEdicionNotifier(actualizarUseCase);
+});
+
+
+// *****************************************************************************
+//  PROVIDERS DE IMAGEN
+
+final imagenApiProvider = Provider<ImagenApi>((ref) {
+  final dio = ref.watch(dioProvider);
+  return ImagenApi(dio);
+});
+
+final imagenRepositoryProvider = Provider<ImagenRepository>((ref) {
+  final api = ref.watch(imagenApiProvider);
+  return ImagenRepositoryImpl(api);
+});
+
+final subirFotoPerfilUseCaseProvider = Provider<SubirFotoPerfilCasoUso>((ref) {
+  final repo = ref.watch(imagenRepositoryProvider);
+  return SubirFotoPerfilCasoUso(repo);
+});
+
+final obtenerFotoPerfilUseCaseProvider = Provider<ObtenerFotoPerfilCasoUso>((ref) {
+  final repo = ref.watch(imagenRepositoryProvider);
+  return ObtenerFotoPerfilCasoUso(repo);
+});
+
+
+final fotoPerfilProvider = FutureProvider.family<String?, int>((ref, idUsuario) async {
+  final api = ref.watch(imagenApiProvider);
+  final respuesta = await api.obtenerFotoPerfil(idUsuario);
+
+  if (respuesta.codigoEstado == 200 && respuesta.datos != null) {
+    final urlImagen = respuesta.datos!['urlImagen'] as String?;
+    return urlImagen;
+  }
+
+  return null;
+});
+
+// *****************************************************************************
+//  PROVIDERS DE UBICACION
+
+final ubicacionApiProvider = Provider<UbicacionApi>((ref) {
+  final dio = ref.watch(dioProvider);
+  return UbicacionApi(dio);
+});
+
+final ubicacionRepositoryProvider = Provider<UbicacionRepository>((ref) {
+  final api = ref.watch(ubicacionApiProvider);
+  return UbicacionRepositoryImpl(api);
+});
+
+final buscarUbicacionesUseCaseProvider = Provider<BuscarUbicacionesCasoUso>((ref) {
+  final repo = ref.watch(ubicacionRepositoryProvider);
+  return BuscarUbicacionesCasoUso(repo);
+});

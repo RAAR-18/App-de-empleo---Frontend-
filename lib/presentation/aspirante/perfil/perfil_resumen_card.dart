@@ -1,17 +1,14 @@
-import 'dart:convert';
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:oasis/core/di/providers.dart';
 
 class PerfilResumenCard extends ConsumerWidget {
   final String nombre;
   final String profesion;
   final String ubicacion;
-  final double progreso; // valor entre 0.0 y 1.0
+  final double progreso;
   final List<String> palabrasClave;
+  final String? urlFotoPerfil;
 
   const PerfilResumenCard({
     super.key,
@@ -20,27 +17,35 @@ class PerfilResumenCard extends ConsumerWidget {
     required this.ubicacion,
     required this.progreso,
     required this.palabrasClave,
+    this.urlFotoPerfil,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final session = ref.watch(sessionProvider);
-
-    // Avatar desde base64
-    Widget avatar;
-    if (session.imageBase64 != null) {
-      try {
-        Uint8List bytes = base64Decode(session.imageBase64!);
-        avatar = CircleAvatar(radius: 40, backgroundImage: MemoryImage(bytes));
-      } catch (_) {
-        avatar = const CircleAvatar(radius: 40, child: Icon(Icons.person));
-      }
-    } else {
-      avatar = const CircleAvatar(radius: 40, child: Icon(Icons.person));
-    }
-
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+
+    Widget avatar;
+    if (urlFotoPerfil != null && urlFotoPerfil!.isNotEmpty) {
+      avatar = CircleAvatar(
+        radius: 40,
+        backgroundColor: colorScheme.primaryContainer,
+        backgroundImage: NetworkImage(urlFotoPerfil!),
+        onBackgroundImageError: (exception, stackTrace) {
+        },
+        child: null,  // No mostrar placeholder si hay URL
+      );
+    } else {
+      avatar = CircleAvatar(
+        radius: 40,
+        backgroundColor: colorScheme.primaryContainer,
+        child: Icon(
+          Icons.person,
+          size: 40,
+          color: colorScheme.onPrimaryContainer,
+        ),
+      );
+    }
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

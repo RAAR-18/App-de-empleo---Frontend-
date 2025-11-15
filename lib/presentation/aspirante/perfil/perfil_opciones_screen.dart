@@ -18,6 +18,11 @@ class PerfilOpcionesScreen extends ConsumerWidget {
     final perfilAsync = ref.watch(perfilProvider);
     final palabrasClaveAsync = ref.watch(palabrasClaveProvider);
 
+    final idUsuario = session.userId;
+    final fotoPerfilAsync = idUsuario != null
+        ? ref.watch(fotoPerfilProvider(idUsuario))
+        : const AsyncValue.data(null);
+
     final opciones = [
       "Datos básicos",
       "Mi CV",
@@ -32,6 +37,9 @@ class PerfilOpcionesScreen extends ConsumerWidget {
         onRefresh: () async {
           ref.invalidate(perfilProvider);
           ref.invalidate(palabrasClaveProvider);
+          if (idUsuario != null) {
+            ref.invalidate(fotoPerfilProvider(idUsuario));
+          }
         },
         child: CustomScrollView(
           slivers: [
@@ -50,6 +58,7 @@ class PerfilOpcionesScreen extends ConsumerWidget {
                 ref,
                 perfilAsync,
                 palabrasClaveAsync,
+                fotoPerfilAsync,
               ),
             ),
 
@@ -155,6 +164,7 @@ class PerfilOpcionesScreen extends ConsumerWidget {
       WidgetRef ref,
       AsyncValue perfilAsync,
       AsyncValue palabrasClaveAsync,
+      AsyncValue<String?> fotoPerfilAsync,
       ) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -205,6 +215,7 @@ class PerfilOpcionesScreen extends ConsumerWidget {
         ubicacion: perfil.ubicacion,
         progreso: 0.7,
         palabrasClave: palabrasClaveTexto,
+        urlFotoPerfil: fotoPerfilAsync.value,
       );
     }
 
