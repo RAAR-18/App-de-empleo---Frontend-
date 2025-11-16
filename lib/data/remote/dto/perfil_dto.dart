@@ -1,22 +1,22 @@
 class PerfilDTO {
   final int idUsuario;
   final String nombreCompleto;
-  final String? profesion;  // 👈 Ahora permite null
-  final String? ubicacion;  // 👈 Ahora permite null
+  final String? profesion;
+  final String? ubicacion;
 
   PerfilDTO({
     required this.idUsuario,
     required this.nombreCompleto,
-    this.profesion,  // 👈 Ya no es required
-    this.ubicacion,  // 👈 Ya no es required
+    this.profesion,
+    this.ubicacion,
   });
 
   factory PerfilDTO.fromJson(Map<String, dynamic> json) {
     return PerfilDTO(
       idUsuario: json['idUsuario'] as int,
       nombreCompleto: json['nombreCompleto'] as String,
-      profesion: json['profesion'] as String?,  // 👈 Cast seguro con ?
-      ubicacion: json['ubicacion'] as String?,  // 👈 Cast seguro con ?
+      profesion: json['profesion'] as String?,
+      ubicacion: json['ubicacion'] as String?,
     );
   }
 

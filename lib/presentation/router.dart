@@ -19,6 +19,7 @@ import 'package:oasis/presentation/aspirante/chat/chat_screen.dart';
 import 'package:oasis/presentation/aspirante/chat/chat_conversacion_screen.dart';
 import 'package:oasis/presentation/aspirante/perfil/palabras_clave_screen.dart';
 import 'package:oasis/presentation/aspirante/perfil/datos_basicos_screen.dart';
+import 'package:oasis/presentation/aspirante/perfil/mi_cv_screen.dart';
 
 class NoTransitionPage<T> extends CustomTransitionPage<T> {
   NoTransitionPage({super.key, required super.child})
@@ -153,6 +154,15 @@ final appRouter = GoRouter(
       pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
         child: const DatosBasicosScreen(),
+      ),
+    ),
+
+    GoRoute(
+      path: '/perfil/cv',
+      name: 'perfil_cv',
+      pageBuilder: (context, state) => NoTransitionPage(
+        key: state.pageKey,
+        child: const MiCVScreen(),
       ),
     ),
 

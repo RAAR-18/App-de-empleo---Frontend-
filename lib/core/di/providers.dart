@@ -58,6 +58,14 @@ import 'package:oasis/domain/usecase/subir_foto_perfil_caso_uso.dart';
 import 'package:oasis/domain/usecase/obtener_foto_perfil_caso_uso.dart';
 import 'package:oasis/domain/usecase/buscar_ubicaciones_caso_uso.dart';
 
+import 'package:oasis/data/remote/archivo_api.dart';
+import 'package:oasis/data/repository/archivo_repositorio_impl.dart';
+import 'package:oasis/domain/model/archivo.dart';
+import 'package:oasis/domain/repository/archivo_repositorio.dart';
+import 'package:oasis/domain/usecase/obtener_archivo_caso_uso.dart';
+import 'package:oasis/domain/usecase/descargar_archivo_caso_uso.dart';
+import 'package:oasis/domain/usecase/subir_archivo_caso_uso.dart';
+
 final dioProvider = Provider<Dio>((ref) {
   final options = BaseOptions(
     // 🔴 PRODUCCIÓN: Backend del profesor
@@ -463,4 +471,43 @@ final ubicacionRepositoryProvider = Provider<UbicacionRepository>((ref) {
 final buscarUbicacionesUseCaseProvider = Provider<BuscarUbicacionesCasoUso>((ref) {
   final repo = ref.watch(ubicacionRepositoryProvider);
   return BuscarUbicacionesCasoUso(repo);
+});
+
+// *****************************************************************************
+//  PROVIDERS DE ARCHIVOS
+
+final archivoApiProvider = Provider<ArchivoApi>((ref) {
+  final dio = ref.watch(dioProvider);
+  return ArchivoApi(dio);
+});
+
+final archivoRepositorioProvider = Provider<ArchivoRepositorio>((ref) {
+  final cvApi = ref.watch(archivoApiProvider);
+  return ArchivoRepositorioImpl(cvApi);
+});
+
+final obtenerArchivoUseCaseProvider = Provider<ObtenerAchivoCasoUso>((ref) {
+  final repositorio = ref.watch(archivoRepositorioProvider);
+  return ObtenerAchivoCasoUso(repositorio);
+});
+
+final descargarArchivoUseCaseProvider = Provider<DescargarCVUseCase>((ref) {
+  final repositorio = ref.watch(archivoRepositorioProvider);
+  return DescargarCVUseCase(repositorio);
+});
+
+final subirArchivoUseCaseProvider = Provider<SubirArchivoCasoUso>((ref) {
+  final repositorio = ref.watch(archivoRepositorioProvider);
+  return SubirArchivoCasoUso(repositorio);
+});
+
+final archivoUsuarioProvider = FutureProvider.autoDispose<Archivo?>((ref) async {
+  final session = ref.watch(sessionProvider);
+  final useCase = ref.watch(obtenerArchivoUseCaseProvider);
+
+  if (session.userId == null) {
+    return null;
+  }
+
+  return await useCase(session.userId!);
 });
