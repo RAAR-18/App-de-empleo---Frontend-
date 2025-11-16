@@ -34,13 +34,10 @@ class DescargarCVUseCase {
     if (directory == null) {
       throw Exception('No se pudo acceder al almacenamiento');
     }
-
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final fileName = '${nombrePublico.replaceAll('.pdf', '')}_$timestamp.pdf';
     final file = File('${directory.path}/$fileName');
-
     await file.writeAsBytes(bytes);
-
     return file.path;
   }
 }
