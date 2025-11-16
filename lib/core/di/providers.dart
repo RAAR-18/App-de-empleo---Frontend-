@@ -66,6 +66,19 @@ import 'package:oasis/domain/usecase/obtener_archivo_caso_uso.dart';
 import 'package:oasis/domain/usecase/descargar_archivo_caso_uso.dart';
 import 'package:oasis/domain/usecase/subir_archivo_caso_uso.dart';
 
+import 'package:oasis/data/remote/talento_api.dart';
+import 'package:oasis/data/repository/talento_repositorio_impl.dart';
+import 'package:oasis/domain/repository/talento_repositorio.dart';
+import 'package:oasis/domain/usecase/obtener_talentos_usuario_caso_uso.dart';
+import 'package:oasis/domain/usecase/obtener_estadisticas_talentos_caso_uso.dart';
+import 'package:oasis/domain/usecase/obtener_catalogo_talentos_caso_uso.dart';
+import 'package:oasis/domain/usecase/agregar_talento_caso_uso.dart';
+import 'package:oasis/domain/usecase/editar_nivel_talento_caso_uso.dart';
+import 'package:oasis/domain/usecase/eliminar_talento_caso_uso.dart';
+import 'package:oasis/domain/model/rel_usuario_talento.dart';
+import 'package:oasis/domain/model/talento.dart';
+import 'package:oasis/domain/model/talento_estadisticas.dart';
+
 final dioProvider = Provider<Dio>((ref) {
   final options = BaseOptions(
     // 🔴 PRODUCCIÓN: Backend del profesor
@@ -510,4 +523,78 @@ final archivoUsuarioProvider = FutureProvider.autoDispose<Archivo?>((ref) async 
   }
 
   return await useCase(session.userId!);
+});
+
+// *****************************************************************************
+//  PROVIDERS DE COMPETENCIAS Y HABILIDADES
+
+final talentoApiProvider = Provider<TalentoApi>((ref) {
+  final dio = ref.watch(dioProvider);
+  return TalentoApi(dio);
+});
+
+final talentoRepositoryProvider = Provider<TalentoRepositorio>((ref) {
+  final api = ref.watch(talentoApiProvider);
+  return TalentoRepositorioImpl(api);
+});
+
+// Use Cases
+final obtenerTalentosUsuarioUseCaseProvider = Provider<ObtenerTalentosUsuarioCasoUso>((ref) {
+  final repository = ref.watch(talentoRepositoryProvider);
+  return ObtenerTalentosUsuarioCasoUso(repository);
+});
+
+final obtenerEstadisticasTalentosUseCaseProvider = Provider<ObtenerEstadisticasTalentosCasoUso>((ref) {
+  final repository = ref.watch(talentoRepositoryProvider);
+  return ObtenerEstadisticasTalentosCasoUso(repository);
+});
+
+final obtenerCatalogoTalentosUseCaseProvider = Provider<ObtenerCatalogoTalentosCasoUso>((ref) {
+  final repository = ref.watch(talentoRepositoryProvider);
+  return ObtenerCatalogoTalentosCasoUso(repository);
+});
+
+final agregarTalentoUseCaseProvider = Provider<AgregarTalentoCasoUso>((ref) {
+  final repository = ref.watch(talentoRepositoryProvider);
+  return AgregarTalentoCasoUso(repository);
+});
+
+final editarNivelTalentoUseCaseProvider = Provider<EditarNivelTalentoCasoUso>((ref) {
+  final repository = ref.watch(talentoRepositoryProvider);
+  return EditarNivelTalentoCasoUso(repository);
+});
+
+final eliminarTalentoUseCaseProvider = Provider<EliminarTalentoCasoUso>((ref) {
+  final repository = ref.watch(talentoRepositoryProvider);
+  return EliminarTalentoCasoUso(repository);
+});
+
+// FutureProviders para datos
+final talentosUsuarioProvider = FutureProvider.autoDispose<List<RelUsuarioTalento>>((ref) async {
+  final session = ref.watch(sessionProvider);
+  final idUsuario = session.userId;
+
+  if (idUsuario == null) {
+    throw Exception('No hay usuario en sesión');
+  }
+
+  final useCase = ref.watch(obtenerTalentosUsuarioUseCaseProvider);
+  return await useCase(idUsuario);
+});
+
+final estadisticasTalentosProvider = FutureProvider.autoDispose<TalentoEstadisticas>((ref) async {
+  final session = ref.watch(sessionProvider);
+  final idUsuario = session.userId;
+
+  if (idUsuario == null) {
+    throw Exception('No hay usuario en sesión');
+  }
+
+  final useCase = ref.watch(obtenerEstadisticasTalentosUseCaseProvider);
+  return await useCase(idUsuario);
+});
+
+final catalogoTalentosProvider = FutureProvider.autoDispose<List<Talento>>((ref) async {
+  final useCase = ref.watch(obtenerCatalogoTalentosUseCaseProvider);
+  return await useCase();
 });

@@ -20,6 +20,7 @@ import 'package:oasis/presentation/aspirante/chat/chat_conversacion_screen.dart'
 import 'package:oasis/presentation/aspirante/perfil/palabras_clave_screen.dart';
 import 'package:oasis/presentation/aspirante/perfil/datos_basicos_screen.dart';
 import 'package:oasis/presentation/aspirante/perfil/mi_cv_screen.dart';
+import 'package:oasis/presentation/aspirante/perfil/competencias_habilidades_screen.dart';
 
 class NoTransitionPage<T> extends CustomTransitionPage<T> {
   NoTransitionPage({super.key, required super.child})
@@ -166,6 +167,14 @@ final appRouter = GoRouter(
       ),
     ),
 
+    GoRoute(
+      path: '/perfil/competencias',
+      name: 'perfil_competencias',
+      pageBuilder: (context, state) => NoTransitionPage(
+        key: state.pageKey,
+        child: const CompetenciasHabilidadesScreen(),
+      ),
+    ),
 
     // ========== RUTAS DE CHAT ==========
     
