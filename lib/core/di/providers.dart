@@ -79,6 +79,15 @@ import 'package:oasis/domain/model/rel_usuario_talento.dart';
 import 'package:oasis/domain/model/talento.dart';
 import 'package:oasis/domain/model/talento_estadisticas.dart';
 
+import 'package:oasis/data/remote/portafolio_api.dart';
+import 'package:oasis/data/repository/portafolio_repositorio_impl.dart';
+import 'package:oasis/domain/repository/portafolio_repositorio.dart';
+import 'package:oasis/domain/usecase/obtener_portafolio_caso_uso.dart';
+import 'package:oasis/domain/usecase/subir_imagen_portafolio_caso_uso.dart';
+import 'package:oasis/domain/usecase/eliminar_imagen_portafolio_caso_uso.dart';
+
+import 'package:oasis/application/portafolio_notifier.dart';
+
 final dioProvider = Provider<Dio>((ref) {
   final options = BaseOptions(
     // 🔴 PRODUCCIÓN: Backend del profesor
@@ -597,4 +606,61 @@ final estadisticasTalentosProvider = FutureProvider.autoDispose<TalentoEstadisti
 final catalogoTalentosProvider = FutureProvider.autoDispose<List<Talento>>((ref) async {
   final useCase = ref.watch(obtenerCatalogoTalentosUseCaseProvider);
   return await useCase();
+});
+
+// *****************************************************************************
+//  PROVIDERS DE PORTAFOLIO
+
+final portafolioApiProvider = Provider<PortafolioApi>((ref) {
+  final dio = ref.watch(dioProvider);
+  return PortafolioApi(dio);
+});
+
+// Repository Provider
+final portafolioRepositoryProvider = Provider<PortafolioRepositorio>((ref) {
+  final api = ref.watch(portafolioApiProvider);
+  return PortafolioRepositorioImpl(api);
+});
+
+// Use Cases Providers
+final obtenerPortafolioUseCaseProvider = Provider<ObtenerPortafolioCasoUso>((ref) {
+  final repository = ref.watch(portafolioRepositoryProvider);
+  return ObtenerPortafolioCasoUso(repository);
+});
+
+final subirImagenPortafolioUseCaseProvider = Provider<SubirImagenPortafolioCasoUso>((ref) {
+  final repository = ref.watch(portafolioRepositoryProvider);
+  return SubirImagenPortafolioCasoUso(repository);
+});
+
+final eliminarImagenPortafolioUseCaseProvider = Provider<EliminarImagenPortafolioCasoUso>((ref) {
+  final repository = ref.watch(portafolioRepositoryProvider);
+  return EliminarImagenPortafolioCasoUso(repository);
+});
+
+// FutureProvider para obtener portafolio
+final portafolioUsuarioProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
+  final session = ref.watch(sessionProvider);
+  final idUsuario = session.userId;
+
+  if (idUsuario == null) {
+    throw Exception('No hay usuario en sesión');
+  }
+
+  final useCase = ref.watch(obtenerPortafolioUseCaseProvider);
+  return await useCase(idUsuario);
+});
+
+// StateNotifierProvider para gestionar el estado del portafolio
+final portafolioNotifierProvider = StateNotifierProvider.autoDispose<
+    PortafolioNotifier, PortafolioState>((ref) {
+  final obtenerUseCase = ref.watch(obtenerPortafolioUseCaseProvider);
+  final subirUseCase = ref.watch(subirImagenPortafolioUseCaseProvider);
+  final eliminarUseCase = ref.watch(eliminarImagenPortafolioUseCaseProvider);
+
+  return PortafolioNotifier(
+    obtenerPortafolioCasoUso: obtenerUseCase,
+    subirImagenPortafolioCasoUso: subirUseCase,
+    eliminarImagenPortafolioCasoUso: eliminarUseCase,
+  );
 });
