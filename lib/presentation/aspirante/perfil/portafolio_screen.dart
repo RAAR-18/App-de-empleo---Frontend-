@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:oasis/core/di/providers.dart';
 import 'package:oasis/domain/model/imagen_portafolio.dart';
+import 'package:oasis/core/ui/app_bottom_bar.dart';
 
 class PortafolioScreen extends ConsumerStatefulWidget {
   const PortafolioScreen({Key? key}) : super(key: key);
@@ -248,6 +249,7 @@ class _PortafolioScreenState extends ConsumerState<PortafolioScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(portafolioNotifierProvider);
+    final session = ref.watch(sessionProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // Colores adaptativos
@@ -336,6 +338,10 @@ class _PortafolioScreenState extends ConsumerState<PortafolioScreen> {
             const SizedBox(height: 80),
           ],
         ),
+      ),
+      bottomNavigationBar: AppBottomBar(
+        currentIndex: 4,
+        profileImageBase64: session.imageBase64,
       ),
     );
   }

@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:go_router/go_router.dart';
 import 'package:open_file/open_file.dart';
 import 'package:oasis/core/di/providers.dart';
+import 'package:oasis/core/ui/app_bottom_bar.dart';
 
 class MiCVScreen extends ConsumerStatefulWidget {
   const MiCVScreen({super.key});
@@ -93,6 +94,10 @@ class _MiCVScreenState extends ConsumerState<MiCVScreen> {
           ),
         ),
       ),
+      bottomNavigationBar: AppBottomBar(
+        currentIndex: 4,
+        profileImageBase64: session.imageBase64,
+      ),
     );
   }
 
@@ -123,7 +128,7 @@ class _MiCVScreenState extends ConsumerState<MiCVScreen> {
                     ),
                     child: Icon(
                       Icons.description,
-                      color: colorScheme.primary,
+                      color: colorScheme.onSecondary,
                       size: 32,
                     ),
                   ),

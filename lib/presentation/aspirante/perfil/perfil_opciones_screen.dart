@@ -106,9 +106,6 @@ class PerfilOpcionesScreen extends ConsumerWidget {
                           case "Portafolio":
                             context.go('/perfil/portafolio');
                             break;
-                          case "Configuración general":
-                            context.go('/perfil/configuracion');
-                            break;
                           case "Cerrar sesión":
                             final confirmar = await showDialog<bool>(
                               context: context,

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:oasis/core/di/providers.dart';
 import 'package:oasis/application/palabras_clave_notifier.dart';
 import 'package:oasis/domain/model/palabra_clave.dart';
+import 'package:oasis/core/ui/app_bottom_bar.dart';
 
 class PalabrasClaveScreen extends ConsumerStatefulWidget {
   const PalabrasClaveScreen({super.key});
@@ -112,6 +113,10 @@ class _PalabrasClaveScreenState extends ConsumerState<PalabrasClaveScreen> {
             ],
           ),
         ),
+      ),
+      bottomNavigationBar: AppBottomBar(
+        currentIndex: 4,
+        profileImageBase64: session.imageBase64,
       ),
     );
   }

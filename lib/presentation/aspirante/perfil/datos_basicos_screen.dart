@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:oasis/core/di/providers.dart';
 import 'package:oasis/domain/model/ubicacion.dart';
 import 'package:oasis/application/datos_basicos_editar_notifier.dart';
+import 'package:oasis/core/ui/app_bottom_bar.dart';
 
 class DatosBasicosScreen extends ConsumerStatefulWidget {
   const DatosBasicosScreen({super.key});
@@ -235,6 +236,10 @@ class _DatosBasicosScreenState extends ConsumerState<DatosBasicosScreen> {
             ],
           ),
         ),
+      ),
+      bottomNavigationBar: AppBottomBar(
+        currentIndex: 4,
+        profileImageBase64: session.imageBase64,
       ),
     );
   }
