@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:oasis/core/di/providers.dart';
 
 class PerfilResumenCard extends ConsumerWidget {
   final String nombre;
   final String profesion;
   final String ubicacion;
-  final double progreso;
   final List<String> palabrasClave;
   final String? urlFotoPerfil;
 
@@ -15,7 +15,6 @@ class PerfilResumenCard extends ConsumerWidget {
     required this.nombre,
     required this.profesion,
     required this.ubicacion,
-    required this.progreso,
     required this.palabrasClave,
     this.urlFotoPerfil,
   });
@@ -25,15 +24,17 @@ class PerfilResumenCard extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
+    // Obtener el progreso dinámico
+    final progresoAsync = ref.watch(progresoPerfilProvider);
+
     Widget avatar;
     if (urlFotoPerfil != null && urlFotoPerfil!.isNotEmpty) {
       avatar = CircleAvatar(
         radius: 40,
         backgroundColor: colorScheme.primaryContainer,
         backgroundImage: NetworkImage(urlFotoPerfil!),
-        onBackgroundImageError: (exception, stackTrace) {
-        },
-        child: null,  // No mostrar placeholder si hay URL
+        onBackgroundImageError: (exception, stackTrace) {},
+        child: null,
       );
     } else {
       avatar = CircleAvatar(
@@ -65,39 +66,15 @@ class PerfilResumenCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Barra de progreso
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Completar perfil",
-                    style: textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  Text(
-                    "${(progreso * 100).toInt()}%",
-                    style: textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: LinearProgressIndicator(
-                  value: progreso,
-                  minHeight: 8,
-                  backgroundColor: colorScheme.outline.withValues(alpha: 0.3),
-                  valueColor: AlwaysStoppedAnimation(colorScheme.primary),
-                ),
-              ),
-            ],
+          // Barra de progreso dinámica
+          progresoAsync.when(
+            data: (progreso) => _buildBarraProgreso(
+              context,
+              progreso.progresoTotal,
+              progreso.seccionesFaltantes,
+            ),
+            loading: () => _buildBarraProgresoLoading(context),
+            error: (_, __) => _buildBarraProgreso(context, 0.0, []),
           ),
 
           const SizedBox(height: 16),
@@ -217,6 +194,90 @@ class PerfilResumenCard extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildBarraProgreso(
+      BuildContext context,
+      double progreso,
+      List<String> seccionesFaltantes,
+      ) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              "Completar perfil",
+              style: textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            Text(
+              "${(progreso * 100).toInt()}%",
+              style: textTheme.bodySmall?.copyWith(
+                color: colorScheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: LinearProgressIndicator(
+            value: progreso,
+            minHeight: 8,
+            backgroundColor: colorScheme.outline.withValues(alpha: 0.3),
+            valueColor: AlwaysStoppedAnimation(colorScheme.primary),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBarraProgresoLoading(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(
+              width: 150,
+              height: 12,
+              decoration: BoxDecoration(
+                color: colorScheme.outline.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+            Container(
+              width: 30,
+              height: 12,
+              decoration: BoxDecoration(
+                color: colorScheme.outline.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: LinearProgressIndicator(
+            value: null,
+            minHeight: 8,
+            backgroundColor: colorScheme.outline.withValues(alpha: 0.3),
+          ),
+        ),
+      ],
     );
   }
 }

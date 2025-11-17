@@ -210,7 +210,6 @@ class PerfilOpcionesScreen extends ConsumerWidget {
         nombre: perfil.nombreCompleto,
         profesion: perfil.profesion ?? 'Si especificar',
         ubicacion: perfil.ubicacion ?? 'Ubicacion no registrada ',
-        progreso: 0.7,
         palabrasClave: palabrasClaveTexto,
         urlFotoPerfil: fotoPerfilAsync.value,
       );

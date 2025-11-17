@@ -88,6 +88,11 @@ import 'package:oasis/domain/usecase/eliminar_imagen_portafolio_caso_uso.dart';
 
 import 'package:oasis/application/portafolio_notifier.dart';
 
+import '../../domain/model/progreso_perfil.dart';
+import '../../domain/usecase/calcular_progreso_perfil_caso_uso.dart';
+
+
+
 final dioProvider = Provider<Dio>((ref) {
   final options = BaseOptions(
     // 🔴 PRODUCCIÓN: Backend del profesor
@@ -663,4 +668,35 @@ final portafolioNotifierProvider = StateNotifierProvider.autoDispose<
     subirImagenPortafolioCasoUso: subirUseCase,
     eliminarImagenPortafolioCasoUso: eliminarUseCase,
   );
+});
+
+// *****************************************************************************
+//  PROVIDERS DE PROGRESO DEL PERFIL
+
+final calcularProgresoPerfilUseCaseProvider = Provider<CalcularProgresoPerfilCasoUso>((ref) {
+  final datosBasicosRepo = ref.watch(datosBasicosRepositoryProvider);
+  final archivoRepo = ref.watch(archivoRepositorioProvider);
+  final imagenRepo = ref.watch(imagenRepositoryProvider);
+  final obtenerPalabrasClaveCasoUso = ref.watch(obtenerPalabrasClaveUseCaseProvider);
+  final obtenerTalentosCasoUso = ref.watch(obtenerTalentosUsuarioUseCaseProvider);
+
+  return CalcularProgresoPerfilCasoUso(
+    datosBasicosRepo: datosBasicosRepo,
+    archivoRepo: archivoRepo,
+    imagenRepo: imagenRepo,
+    obtenerPalabrasClaveCasoUso: obtenerPalabrasClaveCasoUso,
+    obtenerTalentosCasoUso: obtenerTalentosCasoUso,
+  );
+});
+
+final progresoPerfilProvider = FutureProvider.autoDispose<ProgresoPerfil>((ref) async {
+  final session = ref.watch(sessionProvider);
+  final idUsuario = session.userId;
+
+  if (idUsuario == null) {
+    throw Exception('No hay usuario en sesión');
+  }
+
+  final useCase = ref.watch(calcularProgresoPerfilUseCaseProvider);
+  return await useCase(idUsuario);
 });

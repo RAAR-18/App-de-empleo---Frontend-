@@ -8,11 +8,12 @@ class ImagenRepositoryImpl implements ImagenRepository {
 
   @override
   Future<String?> obtenerFotoPerfil(int idUsuario) async {
-    final respuesta = await _api.obtenerFotoPerfil(idUsuario);
+    try {
+      final respuesta = await _api.obtenerFotoPerfil(idUsuario);
 
-    if (respuesta.datos == null || respuesta.codigoEstado != 200) {
-      return null;
-    }
+      if (respuesta.datos == null) {
+        return null;
+      }
 
     return respuesta.datos!['fotoPerfil'] as String?;
   }
