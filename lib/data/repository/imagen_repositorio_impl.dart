@@ -15,7 +15,12 @@ class ImagenRepositoryImpl implements ImagenRepository {
         return null;
       }
 
-    return respuesta.datos!['fotoPerfil'] as String?;
+      // Extraer la URL de la imagen
+      final urlImagen = respuesta.datos!['urlImagen'] as String?;
+      return urlImagen;
+    } catch (e) {
+      return null;
+    }
   }
 
   @override
