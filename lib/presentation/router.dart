@@ -23,6 +23,8 @@ import 'package:oasis/presentation/aspirante/perfil/datos_basicos_screen.dart';
 import 'package:oasis/presentation/aspirante/perfil/mi_cv_screen.dart';
 import 'package:oasis/presentation/aspirante/perfil/competencias_habilidades_screen.dart';
 
+import 'aspirante/perfil/verificacion_correo_screen.dart';
+
 class NoTransitionPage<T> extends CustomTransitionPage<T> {
   NoTransitionPage({super.key, required super.child})
     : super(transitionsBuilder: (_, _, _, child) => child);
@@ -183,6 +185,15 @@ final appRouter = GoRouter(
       pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
         child: const PortafolioScreen(),
+      ),
+    ),
+
+    GoRoute(
+      path: '/perfil/verificar-correo',
+      name: 'perfil_verificar_correo',
+      pageBuilder: (context, state) => NoTransitionPage(
+        key: state.pageKey,
+        child: const VerificacionCorreoScreen(),
       ),
     ),
 

@@ -1,5 +1,6 @@
 import "package:dio/dio.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
+import 'package:oasis/application/verificacion_correo_notifier.dart';
 import "package:oasis/data/remote/acceso_api.dart";
 import "package:oasis/data/remote/pin_api.dart";
 import "package:oasis/data/remote/registro_api.dart";
@@ -88,8 +89,14 @@ import 'package:oasis/domain/usecase/eliminar_imagen_portafolio_caso_uso.dart';
 
 import 'package:oasis/application/portafolio_notifier.dart';
 
+import '../../data/remote/verificacion_correo_api.dart';
+import '../../data/repository/verificacion_correo_repositorio_impl.dart';
 import '../../domain/model/progreso_perfil.dart';
+import '../../domain/repository/verificacion_correo_repositorio.dart';
 import '../../domain/usecase/calcular_progreso_perfil_caso_uso.dart';
+import '../../domain/usecase/enviar_codigo_verificacion_caso_uso.dart';
+import '../../domain/usecase/obtener_estado_verificacion_caso_uso.dart';
+import '../../domain/usecase/verificar_codigo_caso_uso.dart';
 
 
 
@@ -699,4 +706,46 @@ final progresoPerfilProvider = FutureProvider.autoDispose<ProgresoPerfil>((ref) 
 
   final useCase = ref.watch(calcularProgresoPerfilUseCaseProvider);
   return await useCase(idUsuario);
+});
+
+// *****************************************************************************
+//  PROVIDERS DE VERIFICACIÓN DE CORREO
+
+final verificacionCorreoApiProvider = Provider<VerificacionCorreoApi>((ref) {
+  final dio = ref.watch(dioProvider);
+  return VerificacionCorreoApi(dio);
+});
+
+final verificacionCorreoRepositoryProvider = Provider<VerificacionCorreoRepositorio>((ref) {
+  final api = ref.watch(verificacionCorreoApiProvider);
+  return VerificacionCorreoRepositorioImpl(api);
+});
+
+final enviarCodigoVerificacionUseCaseProvider = Provider<EnviarCodigoVerificacionCasoUso>((ref) {
+  final repository = ref.watch(verificacionCorreoRepositoryProvider);
+  return EnviarCodigoVerificacionCasoUso(repository);
+});
+
+final verificarCodigoUseCaseProvider = Provider<VerificarCodigoCasoUso>((ref) {
+  final repository = ref.watch(verificacionCorreoRepositoryProvider);
+  return VerificarCodigoCasoUso(repository);
+});
+
+final obtenerEstadoVerificacionUseCaseProvider = Provider<ObtenerEstadoVerificacionCasoUso>((ref) {
+  final repository = ref.watch(verificacionCorreoRepositoryProvider);
+  return ObtenerEstadoVerificacionCasoUso(repository);
+});
+
+final verificaionCorreoNotifierProvider =
+StateNotifierProvider.autoDispose<VerificacionCorreoNotifier, VerificacionCorreoState>((ref) {
+  final enviarCodigo = ref.watch(enviarCodigoVerificacionUseCaseProvider);
+  final verificarCodigo = ref.watch(verificarCodigoUseCaseProvider);
+  final obtenerEstado = ref.watch(obtenerEstadoVerificacionUseCaseProvider);
+
+  return VerificacionCorreoNotifier(
+    enviarCodigoCasoUso: enviarCodigo,
+    verificarCodigoCasoUso: verificarCodigo,
+    obtenerEstadoCasoUso: obtenerEstado,
+    ref: ref,
+  );
 });

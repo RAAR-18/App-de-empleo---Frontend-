@@ -28,7 +28,7 @@ class PerfilOpcionesScreen extends ConsumerWidget {
       "Mi CV",
       "Competencias y habilidades",
       "Portafolio",
-      "Configuración general",
+      "Verificar correo",
       "Cerrar sesión",
     ];
 
@@ -105,6 +105,9 @@ class PerfilOpcionesScreen extends ConsumerWidget {
                             break;
                           case "Portafolio":
                             context.go('/perfil/portafolio');
+                            break;
+                          case "Verificar correo":
+                            context.go('/perfil/verificar-correo');
                             break;
                           case "Cerrar sesión":
                             final confirmar = await showDialog<bool>(
