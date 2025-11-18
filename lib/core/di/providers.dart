@@ -98,7 +98,11 @@ import '../../domain/usecase/enviar_codigo_verificacion_caso_uso.dart';
 import '../../domain/usecase/obtener_estado_verificacion_caso_uso.dart';
 import '../../domain/usecase/verificar_codigo_caso_uso.dart';
 
-
+import 'package:oasis/data/remote/contrasena_api.dart';
+import 'package:oasis/data/repository/cambiar_contrasena_repositorio_impl.dart';
+import 'package:oasis/domain/repository/cambiar_contrasena_repositorio.dart';
+import 'package:oasis/domain/usecase/cambiar_contrasena_caso_uso.dart';
+import 'package:oasis/application/cambiar_contrasena_notifier.dart';
 
 final dioProvider = Provider<Dio>((ref) {
   final options = BaseOptions(
@@ -748,4 +752,32 @@ StateNotifierProvider.autoDispose<VerificacionCorreoNotifier, VerificacionCorreo
     obtenerEstadoCasoUso: obtenerEstado,
     ref: ref,
   );
+});
+
+// *****************************************************************************
+//  PROVIDERS DE CAMBIAR CONTRASEÑA
+
+/// Provider de ContrasenaApi
+final contrasenaApiProvider = Provider<ContrasenaApi>((ref) {
+  final dio = ref.watch(dioProvider);
+  return ContrasenaApi(dio);
+});
+
+/// Provider de CambiarContrasenaRepositorio
+final cambiarContrasenaRepositoryProvider = Provider<CambiarContrasenaRepositorio>((ref) {
+  final api = ref.watch(contrasenaApiProvider);
+  return CambiarContrasenaRepositorioImpl(api);
+});
+
+/// Provider de CambiarContrasenaCasoUso
+final cambiarContrasenaUseCaseProvider = Provider<CambiarContrasenaCasoUso>((ref) {
+  final repository = ref.watch(cambiarContrasenaRepositoryProvider);
+  return CambiarContrasenaCasoUso(repository);
+});
+
+/// Provider de CambiarContrasenaNotifier
+final cambiarContrasenaNotifierProvider = StateNotifierProvider.autoDispose<
+    CambiarContrasenaNotifier, CambiarContrasenaState>((ref) {
+  final useCase = ref.watch(cambiarContrasenaUseCaseProvider);
+  return CambiarContrasenaNotifier(useCase);
 });

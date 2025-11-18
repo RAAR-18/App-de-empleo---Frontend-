@@ -23,6 +23,7 @@ import 'package:oasis/presentation/aspirante/perfil/datos_basicos_screen.dart';
 import 'package:oasis/presentation/aspirante/perfil/mi_cv_screen.dart';
 import 'package:oasis/presentation/aspirante/perfil/competencias_habilidades_screen.dart';
 
+import 'aspirante/perfil/cambiar_contrasena_screen.dart';
 import 'aspirante/perfil/verificacion_correo_screen.dart';
 
 class NoTransitionPage<T> extends CustomTransitionPage<T> {
@@ -194,6 +195,15 @@ final appRouter = GoRouter(
       pageBuilder: (context, state) => NoTransitionPage(
         key: state.pageKey,
         child: const VerificacionCorreoScreen(),
+      ),
+    ),
+
+    GoRoute(
+      path: '/perfil/cambiar-contrasena',
+      name: 'perfil_cambiar_contrasena',
+      pageBuilder: (context, state) => NoTransitionPage(
+        key: state.pageKey,
+        child: const CambiarContrasenaScreen(),
       ),
     ),
 
