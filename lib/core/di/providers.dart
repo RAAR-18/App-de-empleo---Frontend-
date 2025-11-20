@@ -89,13 +89,24 @@ import 'package:oasis/domain/usecase/eliminar_imagen_portafolio_caso_uso.dart';
 
 import 'package:oasis/application/portafolio_notifier.dart';
 
+import '../../application/cambio_telefono_notifier.dart';
+import '../../data/remote/acceso_info_api.dart';
+import '../../data/remote/cambio_telefono_api.dart';
 import '../../data/remote/verificacion_correo_api.dart';
+import '../../data/repository/acceso_info_repositorio_impl.dart';
+import '../../data/repository/cambio_telefono_repositorio_impl.dart';
 import '../../data/repository/verificacion_correo_repositorio_impl.dart';
 import '../../domain/model/progreso_perfil.dart';
+import '../../domain/repository/acceso_info_repositorio.dart';
+import '../../domain/repository/cambio_telefono_repositorio.dart';
 import '../../domain/repository/verificacion_correo_repositorio.dart';
 import '../../domain/usecase/calcular_progreso_perfil_caso_uso.dart';
 import '../../domain/usecase/enviar_codigo_verificacion_caso_uso.dart';
+import '../../domain/usecase/iniciar_cambio_telefono_caso_uso.dart';
 import '../../domain/usecase/obtener_estado_verificacion_caso_uso.dart';
+import '../../domain/usecase/obtener_telefono_usuario_caso_uso.dart';
+import '../../domain/usecase/reenviar_codigo_anterior_caso_uso.dart';
+import '../../domain/usecase/reenviar_codigo_nuevo_caso_uso.dart';
 import '../../domain/usecase/verificar_codigo_caso_uso.dart';
 
 import 'package:oasis/data/remote/contrasena_api.dart';
@@ -103,6 +114,9 @@ import 'package:oasis/data/repository/cambiar_contrasena_repositorio_impl.dart';
 import 'package:oasis/domain/repository/cambiar_contrasena_repositorio.dart';
 import 'package:oasis/domain/usecase/cambiar_contrasena_caso_uso.dart';
 import 'package:oasis/application/cambiar_contrasena_notifier.dart';
+
+import '../../domain/usecase/verificar_pin_anterior_caso_uso.dart';
+import '../../domain/usecase/verificar_pin_nuevo_caso_uso.dart';
 
 final dioProvider = Provider<Dio>((ref) {
   final options = BaseOptions(
@@ -780,4 +794,99 @@ final cambiarContrasenaNotifierProvider = StateNotifierProvider.autoDispose<
     CambiarContrasenaNotifier, CambiarContrasenaState>((ref) {
   final useCase = ref.watch(cambiarContrasenaUseCaseProvider);
   return CambiarContrasenaNotifier(useCase);
+});
+
+// *****************************************************************************
+//  PROVIDERS DE CAMBIAR TELEFONO
+
+final cambioTelefonoApiProvider = Provider<CambioTelefonoApi>((ref) {
+  final dio = ref.watch(dioProvider);
+  return CambioTelefonoApi(dio);
+});
+
+/// Provider de CambioTelefonoRepositorio
+final cambioTelefonoRepositoryProvider = Provider<CambioTelefonoRepositorio>((ref) {
+  final api = ref.watch(cambioTelefonoApiProvider);
+  return CambioTelefonoRepositorioImpl(api);
+});
+
+/// Provider de IniciarCambioTelefonoCasoUso
+final iniciarCambioTelefonoUseCaseProvider = Provider<IniciarCambioTelefonoCasoUso>((ref) {
+  final repository = ref.watch(cambioTelefonoRepositoryProvider);
+  return IniciarCambioTelefonoCasoUso(repository);
+});
+
+/// Provider de VerificarPinAnteriorCasoUso
+final verificarPinAnteriorUseCaseProvider = Provider<VerificarPinAnteriorCasoUso>((ref) {
+  final repository = ref.watch(cambioTelefonoRepositoryProvider);
+  return VerificarPinAnteriorCasoUso(repository);
+});
+
+/// Provider de VerificarPinNuevoCasoUso
+final verificarPinNuevoUseCaseProvider = Provider<VerificarPinNuevoCasoUso>((ref) {
+  final repository = ref.watch(cambioTelefonoRepositoryProvider);
+  return VerificarPinNuevoCasoUso(repository);
+});
+
+/// Provider de ReenviarCodigoAnteriorCasoUso
+final reenviarCodigoAnteriorUseCaseProvider = Provider<ReenviarCodigoAnteriorCasoUso>((ref) {
+  final repository = ref.watch(cambioTelefonoRepositoryProvider);
+  return ReenviarCodigoAnteriorCasoUso(repository);
+});
+
+/// Provider de ReenviarCodigoNuevoCasoUso
+final reenviarCodigoNuevoUseCaseProvider = Provider<ReenviarCodigoNuevoCasoUso>((ref) {
+  final repository = ref.watch(cambioTelefonoRepositoryProvider);
+  return ReenviarCodigoNuevoCasoUso(repository);
+});
+
+/// Provider de CambioTelefonoNotifier
+final cambioTelefonoNotifierProvider = StateNotifierProvider.autoDispose<
+    CambioTelefonoNotifier, CambioTelefonoState>((ref) {
+  final iniciarCambio = ref.watch(iniciarCambioTelefonoUseCaseProvider);
+  final verificarAnterior = ref.watch(verificarPinAnteriorUseCaseProvider);
+  final verificarNuevo = ref.watch(verificarPinNuevoUseCaseProvider);
+  final reenviarAnterior = ref.watch(reenviarCodigoAnteriorUseCaseProvider);
+  final reenviarNuevo = ref.watch(reenviarCodigoNuevoUseCaseProvider);
+
+  return CambioTelefonoNotifier(
+    iniciarCambioUseCase: iniciarCambio,
+    verificarAnteriorUseCase: verificarAnterior,
+    verificarNuevoUseCase: verificarNuevo,
+    reenviarAnteriorUseCase: reenviarAnterior,
+    reenviarNuevoUseCase: reenviarNuevo,
+  );
+});
+
+// *****************************************************************************
+//  PROVIDERS MÍNIMOS PARA OBTENER TELÉFONO DEL USUARIO
+
+/// Provider de AccesoInfoApi
+final accesoInfoApiProvider = Provider<AccesoInfoApi>((ref) {
+  final dio = ref.watch(dioProvider);
+  return AccesoInfoApi(dio);
+});
+
+/// Provider de AccesoInfoRepositorio
+final accesoInfoRepositoryProvider = Provider<AccesoInfoRepositorio>((ref) {
+  final api = ref.watch(accesoInfoApiProvider);
+  return AccesoInfoRepositorioImpl(api);
+});
+
+/// Provider de ObtenerTelefonoUsuarioCasoUso
+final obtenerTelefonoUsuarioUseCaseProvider = Provider<ObtenerTelefonoUsuarioCasoUso>((ref) {
+  final repository = ref.watch(accesoInfoRepositoryProvider);
+  return ObtenerTelefonoUsuarioCasoUso(repository);
+});
+
+final telefonoActualProvider = FutureProvider.autoDispose<String>((ref) async {
+  final session = ref.watch(sessionProvider);
+  final idUsuario = session.userId;
+
+  if (idUsuario == null) {
+    throw Exception('No hay usuario en sesión');
+  }
+
+  final useCase = ref.watch(obtenerTelefonoUsuarioUseCaseProvider);
+  return await useCase(idUsuario);
 });

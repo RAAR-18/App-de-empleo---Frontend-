@@ -6,6 +6,7 @@ import 'package:oasis/presentation/acceso/acceso_screen.dart';
 import 'package:oasis/presentation/aspirante/explorar_screen.dart';
 import 'package:oasis/presentation/aspirante/inicio_screen.dart';
 import 'package:oasis/presentation/aspirante/match_screen.dart';
+import 'package:oasis/presentation/aspirante/perfil/cambiar_telefono_screen.dart';
 import 'package:oasis/presentation/aspirante/perfil/portafolio_screen.dart';
 import 'package:oasis/presentation/aspirante/postulacion_screen.dart';
 import 'package:oasis/presentation/aspirante/perfil/perfil_opciones_screen.dart';
@@ -206,6 +207,16 @@ final appRouter = GoRouter(
         child: const CambiarContrasenaScreen(),
       ),
     ),
+
+    GoRoute(
+      path: '/perfil/cambiar-telefono',
+      name: 'perfil_cambiar_telefono',
+      pageBuilder: (context, state) => NoTransitionPage(
+        key: state.pageKey,
+        child: const CambiarTelefonoScreen(),
+      ),
+    ),
+
 
     // ========== RUTAS DE CHAT ==========
     

@@ -29,6 +29,7 @@ class PerfilOpcionesScreen extends ConsumerWidget {
       "Competencias y habilidades",
       "Portafolio",
       "Cambiar contraseña",
+      "Cambiar teléfono",
       "Verificar correo",
       "Cerrar sesión",
     ];
@@ -109,6 +110,9 @@ class PerfilOpcionesScreen extends ConsumerWidget {
                             break;
                           case "Cambiar contraseña":
                             context.go('/perfil/cambiar-contrasena');
+                            break;
+                          case "Cambiar teléfono":
+                            context.go('/perfil/cambiar-telefono');
                             break;
                           case "Verificar correo":
                             context.go('/perfil/verificar-correo');
