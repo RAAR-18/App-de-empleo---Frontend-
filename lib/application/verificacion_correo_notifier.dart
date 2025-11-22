@@ -59,10 +59,9 @@ class VerificacionCorreoNotifier extends StateNotifier<VerificacionCorreoState> 
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-
       final verificacion = await _obtenerEstadoCasoUso(correo);
 
-      await _guardarEstadoEnSesion(verificacion.estadoVerificacion ?? 1);
+      await _actualizarEstadoVerificacion(verificacion.estadoVerificacion ?? 1);
 
       state = state.copyWith(
         isLoading: false,
@@ -81,10 +80,9 @@ class VerificacionCorreoNotifier extends StateNotifier<VerificacionCorreoState> 
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-
       final verificacion = await _enviarCodigoCasoUso(correo);
 
-      await _guardarEstadoEnSesion(verificacion.estadoVerificacion ?? 2);
+      await _actualizarEstadoVerificacion(verificacion.estadoVerificacion ?? 2);
 
       state = state.copyWith(
         isLoading: false,
@@ -105,7 +103,7 @@ class VerificacionCorreoNotifier extends StateNotifier<VerificacionCorreoState> 
     try {
       final verificacion = await _verificarCodigoCasoUso(correo, codigo);
 
-      await _guardarEstadoEnSesion(verificacion.estadoVerificacion ?? 3);
+      await _actualizarEstadoVerificacion(verificacion.estadoVerificacion ?? 3);
 
       state = state.copyWith(
         isLoading: false,
@@ -124,8 +122,7 @@ class VerificacionCorreoNotifier extends StateNotifier<VerificacionCorreoState> 
     state = state.copyWith(codigoEnviado: false);
   }
 
-  Future<void> _guardarEstadoEnSesion(int estadoVerificacion) async {
-      final sessionNotifier = _ref.read(sessionProvider.notifier);
-      await sessionNotifier.updateEstadoVerificacion(estadoVerificacion);
+  Future<void> _actualizarEstadoVerificacion(int estadoVerificacion) async {
+    _ref.invalidate(accesoInfoProvider);
   }
 }

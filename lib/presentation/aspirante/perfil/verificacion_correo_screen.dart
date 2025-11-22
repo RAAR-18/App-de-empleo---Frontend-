@@ -30,24 +30,33 @@ class _VerificacionCorreoScreenState
   Future<void> _cargarEstadoInicial() async {
     setState(() => _isLoadingEstado = true);
 
-    final session = ref.read(sessionProvider);
-    final correo = session.email;
+    try {
+      final accesoInfoAsyncValue = ref.read(accesoInfoProvider);
 
-    if (correo != null && correo.isNotEmpty) {
+      await accesoInfoAsyncValue.when(
+        data: (accesoInfo) async {
+          final correo = accesoInfo.email;
 
-      try {
-        await ref.read(verificaionCorreoNotifierProvider.notifier)
-            .obtenerEstado(correo);
-
-        final state = ref.read(verificaionCorreoNotifierProvider);
-        final sessionActualizada = ref.read(sessionProvider);
-
-
-      } catch (e) {
-        print('Error al obtener estado: $e');
-      }
-    } else {
-      print('No hay correo en la sesión');
+          if (correo != null && correo.isNotEmpty) {
+            try {
+              await ref.read(verificaionCorreoNotifierProvider.notifier)
+                  .obtenerEstado(correo);
+            } catch (e) {
+              print('Error al obtener estado de verificación: $e');
+            }
+          } else {
+            print('No hay correo en acceso_info');
+          }
+        },
+        loading: () async {
+          print('Cargando información de acceso...');
+        },
+        error: (error, stack) async {
+          print('Error al cargar acceso_info: $error');
+        },
+      );
+    } catch (e) {
+      print('Error en _cargarEstadoInicial: $e');
     }
 
     setState(() => _isLoadingEstado = false);
@@ -60,16 +69,20 @@ class _VerificacionCorreoScreenState
   }
 
   Future<void> _enviarCodigo() async {
-    final session = ref.read(sessionProvider);
-    final correo = session.email;
+    final accesoInfoAsyncValue = ref.read(accesoInfoProvider);
 
-    if (correo == null || correo.isEmpty) {
-      _mostrarError('No se encontró el correo en la sesión');
+    String? correo;
+    accesoInfoAsyncValue.whenData((accesoInfo) {
+      correo = accesoInfo.email;
+    });
+
+    if (correo == null || correo!.isEmpty) {
+      _mostrarError('No se encontró el correo en la información de acceso');
       return;
     }
 
     await ref.read(verificaionCorreoNotifierProvider.notifier)
-        .enviarCodigo(correo);
+        .enviarCodigo(correo!);
 
     final state = ref.read(verificaionCorreoNotifierProvider);
 
@@ -100,16 +113,20 @@ class _VerificacionCorreoScreenState
       return;
     }
 
-    final session = ref.read(sessionProvider);
-    final correo = session.email;
+    final accesoInfoAsyncValue = ref.read(accesoInfoProvider);
 
-    if (correo == null || correo.isEmpty) {
-      _mostrarError('No se encontró el correo en la sesión');
+    String? correo;
+    accesoInfoAsyncValue.whenData((accesoInfo) {
+      correo = accesoInfo.email;
+    });
+
+    if (correo == null || correo!.isEmpty) {
+      _mostrarError('No se encontró el correo en la información de acceso');
       return;
     }
 
     await ref.read(verificaionCorreoNotifierProvider.notifier)
-        .verificarCodigo(correo, codigo);
+        .verificarCodigo(correo!, codigo);
 
     final state = ref.read(verificaionCorreoNotifierProvider);
 
@@ -168,54 +185,74 @@ class _VerificacionCorreoScreenState
     final state = ref.watch(verificaionCorreoNotifierProvider);
     final session = ref.watch(sessionProvider);
 
-    final correo = session.email ?? '';
+    final accesoInfoAsyncValue = ref.watch(accesoInfoProvider);
 
-    if (correo.isEmpty) {
-      return _buildPantallaError(colorScheme, textTheme);
-    }
+    return accesoInfoAsyncValue.when(
+      data: (accesoInfo) {
+        final correo = accesoInfo.email ?? '';
 
-    if (_isLoadingEstado) {
-      return Scaffold(
+        if (correo.isEmpty) {
+          return _buildPantallaError(colorScheme, textTheme);
+        }
+
+        if (_isLoadingEstado) {
+          return _buildPantallaCargando(colorScheme, textTheme);
+        }
+
+        // Verificar si ya está verificado desde estadoVerificacionCorreo o desde la API
+        if (accesoInfo.estadoVerificacionCorreo == 3 ||
+            state.verificacion?.estaVerificado == true) {
+          return _buildPantallaVerificado(colorScheme, textTheme);
+        }
+
+        if (_codigoEnviado) {
+          return _buildPantallaIngresoCodigo(correo, colorScheme, textTheme, state);
+        }
+
+        return _buildPantallaPrincipal(correo, colorScheme, textTheme, state, accesoInfo);
+      },
+      loading: () => _buildPantallaCargando(colorScheme, textTheme),
+      error: (error, stack) => _buildPantallaError(colorScheme, textTheme),
+    );
+  }
+
+  Widget _buildPantallaCargando(ColorScheme colorScheme, TextTheme textTheme) {
+    return Scaffold(
+      backgroundColor: colorScheme.surface,
+      appBar: AppBar(
         backgroundColor: colorScheme.surface,
-        appBar: AppBar(
-          backgroundColor: colorScheme.surface,
-          elevation: 0,
-          title: const AppTopBar(title: "Correo Electrónico"),
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
-            onPressed: () => context.go('/perfil'),
-          ),
+        elevation: 0,
+        title: const AppTopBar(title: "Correo Electrónico"),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
+          onPressed: () => context.go('/perfil'),
         ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(color: colorScheme.primary),
-              const SizedBox(height: 16),
-              Text(
-                'Verificando estado del correo...',
-                style: textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurface.withOpacity(0.7),
-                ),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(color: colorScheme.primary),
+            const SizedBox(height: 16),
+            Text(
+              'Verificando estado del correo...',
+              style: textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurface.withOpacity(0.7),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-      );
-    }
+      ),
+    );
+  }
 
-    if (session.estadoVerificacionCorreo == 3) {
-      return _buildPantallaVerificado(colorScheme, textTheme);
-    }
-
-    if (state.verificacion?.estaVerificado == true) {
-      return _buildPantallaVerificado(colorScheme, textTheme);
-    }
-
-    if (_codigoEnviado) {
-      return _buildPantallaIngresoCodigo(correo, colorScheme, textTheme, state);
-    }
-
+  Widget _buildPantallaPrincipal(
+      String correo,
+      ColorScheme colorScheme,
+      TextTheme textTheme,
+      state,
+      accesoInfo,
+      ) {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(

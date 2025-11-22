@@ -20,13 +20,6 @@ Future<void> main() async {
   final expira = prefs.getInt("swallow_expira_en");
   final userId = prefs.getInt("swallow_user_id");
   final empresaId = prefs.getInt("swallow_empresa_id");
-  final email = prefs.getString("swallow_email");
-  final estadoVerificacion = prefs.getInt("swallow_estado_verificacion_correo");
-
-  String? emailFinal = email;
-  if ((emailFinal == null || emailFinal.isEmpty) && token != null) {
-    emailFinal = AccesoSesion.extractEmailFromToken(token);
-  }
 
   // Crear sesión inicial con todos los datos incluidos userId y empresaId
   final initialSession = AccesoSesion(
@@ -35,9 +28,8 @@ Future<void> main() async {
     expiraEn: expira,
     userId: userId,
     empresaId: empresaId,
-    email: emailFinal,
-    estadoVerificacionCorreo: estadoVerificacion,
   );
+
   runApp(
     ProviderScope(
       overrides: [

@@ -96,6 +96,7 @@ import '../../data/remote/verificacion_correo_api.dart';
 import '../../data/repository/acceso_info_repositorio_impl.dart';
 import '../../data/repository/cambio_telefono_repositorio_impl.dart';
 import '../../data/repository/verificacion_correo_repositorio_impl.dart';
+import '../../domain/model/acceso_info.dart';
 import '../../domain/model/progreso_perfil.dart';
 import '../../domain/repository/acceso_info_repositorio.dart';
 import '../../domain/repository/cambio_telefono_repositorio.dart';
@@ -103,6 +104,7 @@ import '../../domain/repository/verificacion_correo_repositorio.dart';
 import '../../domain/usecase/calcular_progreso_perfil_caso_uso.dart';
 import '../../domain/usecase/enviar_codigo_verificacion_caso_uso.dart';
 import '../../domain/usecase/iniciar_cambio_telefono_caso_uso.dart';
+import '../../domain/usecase/obtener__informacion_acceso_caso_uso.dart';
 import '../../domain/usecase/obtener_estado_verificacion_caso_uso.dart';
 import '../../domain/usecase/obtener_telefono_usuario_caso_uso.dart';
 import '../../domain/usecase/reenviar_codigo_anterior_caso_uso.dart';
@@ -879,6 +881,13 @@ final obtenerTelefonoUsuarioUseCaseProvider = Provider<ObtenerTelefonoUsuarioCas
   return ObtenerTelefonoUsuarioCasoUso(repository);
 });
 
+final obtenerInformacionAccesoCasoUsoProvider =
+Provider<ObtenerInformacionAccesoCasoUso>((ref) {
+  final repo = ref.watch(accesoInfoRepositoryProvider);
+  return ObtenerInformacionAccesoCasoUso(repo);
+});
+
+
 final telefonoActualProvider = FutureProvider.autoDispose<String>((ref) async {
   final session = ref.watch(sessionProvider);
   final idUsuario = session.userId;
@@ -890,3 +899,24 @@ final telefonoActualProvider = FutureProvider.autoDispose<String>((ref) async {
   final useCase = ref.watch(obtenerTelefonoUsuarioUseCaseProvider);
   return await useCase(idUsuario);
 });
+
+final obtenerInformacionAccesoProvider =
+FutureProvider.autoDispose.family<AccesoInfo, int>((ref, idUsuario) {
+  final repo = ref.watch(accesoInfoRepositoryProvider);
+  final casoUso = ObtenerInformacionAccesoCasoUso(repo);
+
+  return casoUso(idUsuario);
+});
+
+final accesoInfoProvider =
+FutureProvider.autoDispose<AccesoInfo>((ref) async {
+  final sesion = ref.watch(sessionProvider);
+  final casoUso = ref.read(obtenerInformacionAccesoCasoUsoProvider);
+
+  if (sesion.userId == null) {
+    throw Exception("No hay idUsuario en SesionNotifier");
+  }
+
+  return await casoUso(sesion.userId!);
+});
+
